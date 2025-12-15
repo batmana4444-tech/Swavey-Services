@@ -1,54 +1,148 @@
-// 3D background
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer({ alpha: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.getElementById('bg-scene').appendChild(renderer.domElement);
-
-const particles = new THREE.Points(
-  new THREE.BufferGeometry(),
-  new THREE.PointsMaterial({ color: 0xff0844, size: 0.07 })
-);
-const positions = [];
-for (let i = 0; i < 8000; i++) {
-  positions.push((Math.random() - 0.5) * 15, (Math.random() - 0.5) * 15, (Math.random() - 0.5) * 15);
+:root{
+  --bg:#080006;
+  --neon-red: #ff0844;
+  --neon-white: #ffffff;
+  --glass: rgba(255,255,255,0.03);
+  --glass-strong: rgba(255,255,255,0.06);
+  --accent: #ff2b6d;
+  --font-display: 'Orbitron', sans-serif;
+  --font-base: 'Inter', system-ui, Arial;
 }
-particles.geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-scene.add(particles);
-camera.position.z = 8;
 
-function animate() {
-  requestAnimationFrame(animate);
-  particles.rotation.y += 0.001;
-  particles.rotation.x += 0.0005;
-  renderer.render(scene, camera);
+*{box-sizing:border-box}
+html,body,#bg-scene{height:100%}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--neon-white);
+  font-family:var(--font-base);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  overflow-x:hidden;
 }
-animate();
 
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
+/* background scene sits under everything */
+#bg-scene{
+  position:fixed;
+  inset:0;
+  z-index:-2;
+}
 
-// Modal functionality
-const modal = document.getElementById('modal');
-const modalTitle = document.getElementById('modalTitle');
-const modalDesc = document.getElementById('modalDesc');
-const modalPrice = document.getElementById('modalPrice');
-const closeBtn = document.getElementById('modalClose');
+/* translucent overlay to enhance neon contrast */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:linear-gradient(180deg, rgba(255,10,60,0.02), rgba(0,0,0,0.3));
+  z-index:-1;
+}
 
-document.querySelectorAll('.btn-buy').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const card = btn.closest('.product-card');
-    modalTitle.textContent = card.dataset.name;
-    modalDesc.textContent = card.querySelector('p').textContent;
-    modalPrice.textContent = card.dataset.price;
-    modal.classList.remove('hidden');
-  });
-});
+/* header */
+.site-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px 22px;
+  gap:12px;
+  position:sticky;
+  top:0;
+  backdrop-filter: blur(6px);
+  background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-bottom:1px solid rgba(255,255,255,0.03);
+  z-index:10;
+}
+.logo{display:flex;align-items:center;gap:10px}
+.swavey-mark{
+  font-family:var(--font-display);
+  font-weight:700;
+  width:48px;height:48px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(45deg, rgba(255,0,80,0.14), rgba(255,200,200,0.04));
+  box-shadow: 0 0 22px rgba(255,20,80,0.12), inset 0 0 10px rgba(255,255,255,0.02);
+  color:var(--neon-white);
+  font-size:26px;
+  border:1px solid rgba(255,255,255,0.06);
+  text-shadow: 0 0 8px rgba(255,40,100,0.8);
+}
+.brand h1{margin:0;font-family:var(--font-display);font-size:14px;line-height:1}
+.brand span{font-size:11px;color:rgba(255,255,255,0.6)}
 
-closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
-modal.addEventListener('click', (e) => {
-  if (e.target === modal) modal.classList.add('hidden');
-});
+/* nav */
+.nav{display:flex;gap:12px;align-items:center}
+.nav a{color:var(--neon-white);text-decoration:none;padding:8px 10px;border-radius:8px;font-weight:600}
+.nav .cta{background:linear-gradient(90deg,var(--neon-red),var(--accent));box-shadow:0 6px 18px rgba(255,30,90,0.18);color:white}
+
+.hero{
+  display:flex;
+  gap:28px;
+  align-items:center;
+  padding:48px 22px;
+  min-height:60vh;
+}
+.hero-content{max-width:720px}
+.neon{
+  font-family:var(--font-display);
+  font-size:38px;margin:0 0 10px;
+  color:var(--neon-white);
+  text-shadow:
+    0 0 6px rgba(255,20,70,0.6),
+    0 0 20px rgba(255,10,60,0.45),
+    0 8px 30px rgba(0,0,0,0.6);
+  letter-spacing:0.6px;
+}
+.hero p{color:rgba(255,255,255,0.8)}
+.hero-ctas{margin-top:18px;display:flex;gap:12px}
+
+.btn{
+  display:inline-block;padding:10px 16px;border-radius:10px;text-decoration:none;font-weight:600;border:1px solid rgba(255,255,255,0.06);
+  background:transparent;color:var(--neon-white);cursor:pointer;
+}
+.btn-primary{
+  background:linear-gradient(90deg,var(--neon-red),var(--accent));
+  box-shadow:0 8px 26px rgba(255,20,80,0.16), 0 0 40px rgba(255,30,90,0.06);
+  color:#fff;border:none;
+}
+.btn-ghost{
+  background:transparent;border:1px solid rgba(255,255,255,0.08);
+}
+
+/* preview card */
+.device-card{width:320px;padding:18px;border-radius:16px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));backdrop-filter:blur(8px);box-shadow:0 10px 40px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.04)}
+.device-card .card-inner h3{margin:0 0 6px}
+.card-actions{display:flex;gap:8px;margin-top:12px}
+
+/* sections */
+.section{padding:44px 22px}
+.section h2{font-family:var(--font-display);font-size:22px;margin:0 0 8px;color:var(--neon-white)}
+.section-sub{color:rgba(255,255,255,0.6);margin-bottom:18px}
+
+/* product grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.product{
+  border-radius:14px;padding:14px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border:1px solid rgba(255,255,255,0.04);
+  transition:transform .25s ease, box-shadow .25s ease;
+}
+.product:hover{transform:translateY(-8px);box-shadow:0 20px 60px rgba(255,0,80,0.06)}
+.product .title{font-weight:700}
+.product .price{margin-top:6px;color:var(--neon-red);font-weight:800}
+
+/* services list */
+.services-list{display:flex;flex-wrap:wrap;gap:12px;list-style:none;padding:0;margin:12px 0 0}
+.services-list li{background:var(--glass);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03)}
+
+/* modal */
+.modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:40;background:rgba(0,0,0,0.6)}
+.modal.hidden{display:none}
+.modal-panel{width:min(720px,94%);background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:14px;padding:18px;position:relative;border:1px solid rgba(255,255,255,0.04)}
+.modal-close{position:absolute;top:12px;right:12px;background:transparent;border:none;color:var(--neon-white);font-size:18px}
+
+/* footer */
+.site-footer{display:flex;justify-content:space-between;align-items:center;padding:16px 22px;border-top:1px solid rgba(255,255,255,0.03);color:rgba(255,255,255,0.7);font-size:14px}
+
+/* responsive */
+@media (max-width:900px){
+  .hero{flex-direction:column;align-items:flex-start}
+  .device-card{width:100%}
+  .nav{display:none}
+    }
