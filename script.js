@@ -1,4 +1,3 @@
-
 // Minimal JS: products, modal, and a Three.js neon background
 const PRODUCTS = [
   { id: "swavey-injector", title: "Swavey Injector", price: 10, desc: "Fast, secure script loader. Ready-to-use." },
@@ -174,4 +173,4 @@ function initThreeBG(){
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
-}
+                          }
