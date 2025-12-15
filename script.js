@@ -1,148 +1,177 @@
-:root{
-  --bg:#080006;
-  --neon-red: #ff0844;
-  --neon-white: #ffffff;
-  --glass: rgba(255,255,255,0.03);
-  --glass-strong: rgba(255,255,255,0.06);
-  --accent: #ff2b6d;
-  --font-display: 'Orbitron', sans-serif;
-  --font-base: 'Inter', system-ui, Arial;
+
+// Minimal JS: products, modal, and a Three.js neon background
+const PRODUCTS = [
+  { id: "swavey-injector", title: "Swavey Injector", price: 10, desc: "Fast, secure script loader. Ready-to-use." },
+  { id: "neon-ui-kit", title: "Neon UI Kit", price: 8, desc: "UI components & CSS neon styles for your projects." },
+  { id: "mod-toolkit", title: "Moderator Toolkit", price: 15, desc: "Automated moderation commands for Discord bots." }
+];
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('year').textContent = new Date().getFullYear();
+  buildProductGrid();
+  setupModal();
+  wireDiscordButtons();
+  initThreeBG();
+});
+
+// build product cards
+function buildProductGrid(){
+  const grid = document.getElementById('productGrid');
+  PRODUCTS.forEach(p=>{
+    const el = document.createElement('div');
+    el.className = 'product';
+    el.innerHTML = `
+      <div class="title">${p.title}</div>
+      <div class="desc" style="margin-top:6px;color:rgba(255,255,255,0.75)">${p.desc}</div>
+      <div class="price">$${p.price}</div>
+      <div style="margin-top:10px">
+        <button class="btn btn-primary btn-buy" data-id="${p.id}">Buy</button>
+        <button class="btn btn-ghost btn-contact" data-id="${p.id}">Contact</button>
+      </div>
+    `;
+    grid.appendChild(el);
+  });
+
+  document.body.addEventListener('click',(e)=>{
+    const buy = e.target.closest('.btn-buy');
+    const contact = e.target.closest('.btn-contact');
+    if(buy) openBuyModal(buy.dataset.id);
+    if(contact) openContactModal(contact.dataset.id);
+  });
 }
 
-*{box-sizing:border-box}
-html,body,#bg-scene{height:100%}
-body{
-  margin:0;
-  background:var(--bg);
-  color:var(--neon-white);
-  font-family:var(--font-base);
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-  overflow-x:hidden;
+// modal logic
+const modal = document.getElementById('modal');
+const modalContent = document.getElementById('modalContent');
+const modalClose = document.getElementById('modalClose');
+
+function setupModal(){
+  modalClose.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e)=>{ if(e.target===modal) closeModal(); });
 }
 
-/* background scene sits under everything */
-#bg-scene{
-  position:fixed;
-  inset:0;
-  z-index:-2;
+function openBuyModal(id){
+  const p = PRODUCTS.find(x=>x.id===id);
+  modalContent.innerHTML = `
+    <h3 style="font-family: 'Orbitron', sans-serif">${p.title}</h3>
+    <p>${p.desc}</p>
+    <p style="font-weight:800;color:#ff2b6d">Price: $${p.price}</p>
+    <div style="margin-top:14px;display:flex;gap:10px">
+      <a id="purchaseLink" class="btn btn-primary" href="#" target="_blank">Purchase (placeholder)</a>
+      <button class="btn btn-ghost" id="contactSeller">Contact on Discord</button>
+    </div>
+    <p style="margin-top:12px;color:rgba(255,255,255,0.7);font-size:13px">Payment & delivery links go here. Replace purchase link with your payment provider (Gumroad, Stripe, etc.)</p>
+  `;
+  // placeholder links - replace with real payment link
+  document.getElementById('purchaseLink').href = "https://example.com/purchase/" + id;
+  document.getElementById('contactSeller').addEventListener('click', ()=> {
+    window.open(getDiscordInvite(), '_blank');
+  });
+  openModal();
 }
 
-/* translucent overlay to enhance neon contrast */
-body::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  background:linear-gradient(180deg, rgba(255,10,60,0.02), rgba(0,0,0,0.3));
-  z-index:-1;
+function openContactModal(id){
+  const p = PRODUCTS.find(x=>x.id===id);
+  modalContent.innerHTML = `
+    <h3>Contact about: ${p.title}</h3>
+    <p>Click to open Discord or copy invite:</p>
+    <div style="display:flex;gap:10px;margin-top:12px">
+      <button class="btn btn-primary" id="openDiscord">Open Discord</button>
+      <button class="btn btn-ghost" id="copyInvite">Copy Invite</button>
+    </div>
+  `;
+  document.getElementById('openDiscord').addEventListener('click', ()=> window.open(getDiscordInvite(), '_blank'));
+  document.getElementById('copyInvite').addEventListener('click', ()=> {
+    navigator.clipboard?.writeText(getDiscordInvite()).then(()=> alert('Discord invite copied'));
+  });
+  openModal();
 }
 
-/* header */
-.site-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:14px 22px;
-  gap:12px;
-  position:sticky;
-  top:0;
-  backdrop-filter: blur(6px);
-  background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  border-bottom:1px solid rgba(255,255,255,0.03);
-  z-index:10;
-}
-.logo{display:flex;align-items:center;gap:10px}
-.swavey-mark{
-  font-family:var(--font-display);
-  font-weight:700;
-  width:48px;height:48px;border-radius:10px;
-  display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(45deg, rgba(255,0,80,0.14), rgba(255,200,200,0.04));
-  box-shadow: 0 0 22px rgba(255,20,80,0.12), inset 0 0 10px rgba(255,255,255,0.02);
-  color:var(--neon-white);
-  font-size:26px;
-  border:1px solid rgba(255,255,255,0.06);
-  text-shadow: 0 0 8px rgba(255,40,100,0.8);
-}
-.brand h1{margin:0;font-family:var(--font-display);font-size:14px;line-height:1}
-.brand span{font-size:11px;color:rgba(255,255,255,0.6)}
+function openModal(){ modal.classList.remove('hidden'); modal.setAttribute('aria-hidden','false'); }
+function closeModal(){ modal.classList.add('hidden'); modal.setAttribute('aria-hidden','true'); }
 
-/* nav */
-.nav{display:flex;gap:12px;align-items:center}
-.nav a{color:var(--neon-white);text-decoration:none;padding:8px 10px;border-radius:8px;font-weight:600}
-.nav .cta{background:linear-gradient(90deg,var(--neon-red),var(--accent));box-shadow:0 6px 18px rgba(255,30,90,0.18);color:white}
-
-.hero{
-  display:flex;
-  gap:28px;
-  align-items:center;
-  padding:48px 22px;
-  min-height:60vh;
-}
-.hero-content{max-width:720px}
-.neon{
-  font-family:var(--font-display);
-  font-size:38px;margin:0 0 10px;
-  color:var(--neon-white);
-  text-shadow:
-    0 0 6px rgba(255,20,70,0.6),
-    0 0 20px rgba(255,10,60,0.45),
-    0 8px 30px rgba(0,0,0,0.6);
-  letter-spacing:0.6px;
-}
-.hero p{color:rgba(255,255,255,0.8)}
-.hero-ctas{margin-top:18px;display:flex;gap:12px}
-
-.btn{
-  display:inline-block;padding:10px 16px;border-radius:10px;text-decoration:none;font-weight:600;border:1px solid rgba(255,255,255,0.06);
-  background:transparent;color:var(--neon-white);cursor:pointer;
-}
-.btn-primary{
-  background:linear-gradient(90deg,var(--neon-red),var(--accent));
-  box-shadow:0 8px 26px rgba(255,20,80,0.16), 0 0 40px rgba(255,30,90,0.06);
-  color:#fff;border:none;
-}
-.btn-ghost{
-  background:transparent;border:1px solid rgba(255,255,255,0.08);
+// Discord buttons wiring
+function wireDiscordButtons(){
+  const inviteEls = [document.getElementById('discordInvite'), document.getElementById('discordJoin'), document.getElementById('joinDiscordBtn')];
+  inviteEls.forEach(el=> { if(el) el.href = getDiscordInvite(); });
 }
 
-/* preview card */
-.device-card{width:320px;padding:18px;border-radius:16px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));backdrop-filter:blur(8px);box-shadow:0 10px 40px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.04)}
-.device-card .card-inner h3{margin:0 0 6px}
-.card-actions{display:flex;gap:8px;margin-top:12px}
-
-/* sections */
-.section{padding:44px 22px}
-.section h2{font-family:var(--font-display);font-size:22px;margin:0 0 8px;color:var(--neon-white)}
-.section-sub{color:rgba(255,255,255,0.6);margin-bottom:18px}
-
-/* product grid */
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
-.product{
-  border-radius:14px;padding:14px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  border:1px solid rgba(255,255,255,0.04);
-  transition:transform .25s ease, box-shadow .25s ease;
+// Return your discord invite — replace with real invite
+function getDiscordInvite(){
+  return "https://discord.gg/YOUR_DISCORD_INVITE"; // <-- Replace this with your invite
 }
-.product:hover{transform:translateY(-8px);box-shadow:0 20px 60px rgba(255,0,80,0.06)}
-.product .title{font-weight:700}
-.product .price{margin-top:6px;color:var(--neon-red);font-weight:800}
 
-/* services list */
-.services-list{display:flex;flex-wrap:wrap;gap:12px;list-style:none;padding:0;margin:12px 0 0}
-.services-list li{background:var(--glass);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03)}
+/* ----------------------------
+  Three.js neon animated background
+   - lightweight animated grid/wave
+   - falls back gracefully if WebGL unavailable
+------------------------------*/
+function initThreeBG(){
+  const container = document.getElementById('bg-scene');
+  if(!container) return;
 
-/* modal */
-.modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:40;background:rgba(0,0,0,0.6)}
-.modal.hidden{display:none}
-.modal-panel{width:min(720px,94%);background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:14px;padding:18px;position:relative;border:1px solid rgba(255,255,255,0.04)}
-.modal-close{position:absolute;top:12px;right:12px;background:transparent;border:none;color:var(--neon-white);font-size:18px}
+  // basic scene
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
+  camera.position.set(0, 10, 40);
 
-/* footer */
-.site-footer{display:flex;justify-content:space-between;align-items:center;padding:16px 22px;border-top:1px solid rgba(255,255,255,0.03);color:rgba(255,255,255,0.7);font-size:14px}
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  container.appendChild(renderer.domElement);
 
-/* responsive */
-@media (max-width:900px){
-  .hero{flex-direction:column;align-items:flex-start}
-  .device-card{width:100%}
-  .nav{display:none}
-    }
+  // neon grid lines
+  const grid = new THREE.Group();
+  const mat = new THREE.LineBasicMaterial({ color: 0xff0a5a, transparent:true, opacity:0.08 });
+  const size = 120;
+  const step = 4;
+  for(let i=-size;i<=size;i+=step){
+    const geom1 = new THREE.BufferGeometry().setFromPoints([ new THREE.Vector3(i, -6, -size), new THREE.Vector3(i, -6, size) ]);
+    const geom2 = new THREE.BufferGeometry().setFromPoints([ new THREE.Vector3(-size, -6, i), new THREE.Vector3(size, -6, i) ]);
+    const l1 = new THREE.Line(geom1, mat.clone());
+    const l2 = new THREE.Line(geom2, mat.clone());
+    l1.material.opacity = 0.05 + Math.random()*0.12;
+    l2.material.opacity = 0.05 + Math.random()*0.12;
+    grid.add(l1,l2);
+  }
+  scene.add(grid);
+
+  // floating neon points
+  const pointsGeom = new THREE.BufferGeometry();
+  const count = 300;
+  const positions = new Float32Array(count * 3);
+  for(let i=0;i<count;i++){
+    positions[i*3] = (Math.random()-0.5)*120;
+    positions[i*3+1] = (Math.random()*18)-10;
+    positions[i*3+2] = (Math.random()-0.5)*120;
+  }
+  pointsGeom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const pointsMat = new THREE.PointsMaterial({ color: 0xff2b6d, size: 0.9, transparent:true, opacity:0.45 });
+  const points = new THREE.Points(pointsGeom, pointsMat);
+  scene.add(points);
+
+  // subtle camera movement on mouse
+  const mouse = {x:0,y:0};
+  window.addEventListener('mousemove', (e)=> {
+    mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = (e.clientY / window.innerHeight) * 2 - 1;
+  });
+
+  function animate(){
+    requestAnimationFrame(animate);
+    const t = performance.now() * 0.0005;
+    grid.rotation.y = t * 0.15;
+    points.rotation.y = -t * 0.1;
+    camera.position.x += (mouse.x * 8 - camera.position.x) * 0.04;
+    camera.position.y += (-mouse.y * 6 - camera.position.y) * 0.03;
+    camera.lookAt(0,0,0);
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', ()=> {
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+}
